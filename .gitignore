@@ -13,3 +13,4 @@ lab5_iris_eye_recognition/venv
 lab5_iris_eye_recognition/*.jpg
 lab5_iris_eye_recognition/*.png
 lab5_iris_eye_recognition/*.jpeg
+lab5_iris_eye_recognition/datasets

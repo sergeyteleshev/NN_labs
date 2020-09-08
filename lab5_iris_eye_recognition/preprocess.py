@@ -1,38 +1,61 @@
-import tensorflow.keras as keras
-import os, shutil
-import re
-import glob
-import cv2
+import os
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import cv2
+from detect_iris import detect_iris, detect_pupil
 
-original_dataset_dir = './iris/dataset'
-base_dir = './iris/demo/'
-os.mkdir(base_dir)
+IRIS_EYE_DATASET_PATH = 'datasets/train_1/'
+NAMES_FEMALE_DATASET_PATH = 'datasets/names/female.txt'
+NAMES_MALE_DATASET_PATH = 'datasets/names/male.txt'
+MY_EYE_PATH = 'datasets/sergeyteleshev_eye/sergeyteleshev_croped.jpg'
+IRIS_PROCESSED_DATASET_PATH = 'datasets/iris processed/'
+OUTPUT_CSV_PATH = "output/"
 
-iris_segmented = base_dir + 'iris_dataset'
-os.mkdir(iris_segmented)
+with open(NAMES_MALE_DATASET_PATH) as f:
+    male_names = [name.split('\n')[0] for name in list(f)]
 
-filename = ''
+with open(NAMES_FEMALE_DATASET_PATH) as f:
+    female_names = [name.split('\n')[0] for name in list(f)]
 
-irisList = os.listdir(original_dataset_dir)
+names = np.unique(np.concatenate((male_names, female_names)))
+print('Now we have {} unique names'.format(len(names)))
 
-for iris in irisList:
-    filename = original_dataset_dir + iris
+eyes_pictures_path = []
+iris_eye_cropped_picture_path = []
 
-    grad_iris_img = cv2.imread(filename, 0)
-    iris_img = cv2.imread(filename)
+for dirname, _, filenames in os.walk(IRIS_EYE_DATASET_PATH):
+    for filename in filenames:
+        if filename[-3:] == 'png' or filename[-3:] == 'jpg' or filename[-4:] == 'jpeg':
+            eyes_pictures_path.append(IRIS_EYE_DATASET_PATH + filename)
 
-    crop_iris = grad_iris_img[:, :]
-    crop_orig_iris = iris_img[:, :]
-    crop_iris = cv2.medianBlur(crop_iris, 5)
+            img_name = filename
+            img = cv2.imread(IRIS_EYE_DATASET_PATH + filename, 1)
+            pupil_center, pupil_radius = detect_pupil(img)
 
-    if iris == 'masl2.tmp':
-        circles = cv2.HoughCircles(crop_iris, cv2.HOUGH_GRADIENT, 1.1, 155,
-                                   param1=50, param2=30, minRadius=35, maxRadius=70)
-    else:
-        circles = cv2.HoughCircles(crop_iris, cv2.HOUGH_GRADIENT, 1.0, 155,
-                                   param1=50, param2=30, minRadius=35, maxRadius=70)
+            if pupil_center is None or pupil_radius is None:
+                iris_eye_cropped_picture_path.append(np.nan)
+                continue
 
-    if circles is None:
-        circles = np.uint16(np.around(circles))
+            iris_img = detect_iris(img, (pupil_center[0], pupil_center[1], pupil_radius))
+
+            if iris_img is None:
+                iris_eye_cropped_picture_path.append(np.nan)
+                continue
+
+            iris_img_path = IRIS_PROCESSED_DATASET_PATH + img_name
+            cv2.imwrite(iris_img_path, iris_img)
+            iris_eye_cropped_picture_path.append(iris_img_path)
+
+print('And we have {} unique pictures'.format(len(eyes_pictures_path)))
+
+min_samples = min([len(eyes_pictures_path), len(names)])
+
+df = pd.DataFrame(data={'names': names[:min_samples], 'iris_eye_picture_path': eyes_pictures_path[:min_samples]})
+# df.loc[len(df)] = ['Sergeyteleshev'] + [MY_EYE_PATH]
+
+df['iris_eye_cropped_pucture_path'] = iris_eye_cropped_picture_path
+
+df.dropna(axis=0, inplace=True)
+
+print(df.tail())
+df.to_csv(OUTPUT_CSV_PATH + 'iris_eyes_dataset.csv')

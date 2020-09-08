@@ -11,7 +11,7 @@ def detect_pupil(img):
     kernel = np.ones((2, 2), np.uint8)
     erosion = cv2.erode(thresh, kernel, iterations=1)
     ret, thresh1 = cv2.threshold(erosion, 220, 255, cv2.THRESH_BINARY)
-    _, cnts, hierarchy = cv2.findContours(thresh1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts, hierarchy = cv2.findContours(thresh1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if len(cnts) != 0:
         c = max(cnts, key=cv2.contourArea)
@@ -24,16 +24,25 @@ def detect_pupil(img):
 
 
 def detect_iris(img, pupil):
+    if pupil[0] is None or pupil[1] is None or pupil[2] is None:
+        return None
+
     _, t = cv2.threshold(img, 195, 255, cv2.THRESH_BINARY)
     gray = cv2.cvtColor(t, cv2.COLOR_BGR2GRAY)
-    # _, contours, hierarchy = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    c = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 2, pupil[2] * 2, param2=150)
+
+    try:
+        c = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 2, pupil[2] * 2, param2=150)
+    except BaseException:
+        return None
+
+    if c is None:
+        return None
 
     # Find the iris using the radius of the pupil as input.
     for l in c:
         for circle in l:
             center = (pupil[0], pupil[1])
-            radius = circle[2]
+            radius = int(circle[2])
             # This creates a black image and draws an iris-sized white circle in it.
             mask = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
             cv2.circle(mask, center, radius, (255, 255, 255), thickness=-1)
@@ -44,7 +53,7 @@ def detect_iris(img, pupil):
 
 
 if __name__ == '__main__':
-    img = cv2.imread('two eyes.jpg', 1)
+    img = cv2.imread('datasets/Eye dataset/forward_look/forward_look (1).jpg ', 1)
     center, radius = detect_pupil(img)
     iris_img = detect_iris(img, (center[0], center[1], radius))
     cv2.imshow('my isris', iris_img)
