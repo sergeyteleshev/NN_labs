@@ -1,0 +1,15 @@
+.idea
+lab1_image_recognition/.idea
+lab1_image_recognition/venv
+lab1_image_recognition/*.h5
+lab1_image_recognition/*.jpg
+lab1_image_recognition/*.png
+lab1_image_recognition/*.jpeg
+lab1_image_recognition/*.avi
+lab1_image_recognition/*.mp4
+
+lab5_iris_eye_recognition/.idea
+lab5_iris_eye_recognition/venv
+lab5_iris_eye_recognition/*.jpg
+lab5_iris_eye_recognition/*.png
+lab5_iris_eye_recognition/*.jpeg
