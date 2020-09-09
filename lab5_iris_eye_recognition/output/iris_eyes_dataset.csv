@@ -1,0 +1,10 @@
+,names,iris_eye_picture_path,eye_position
+0,marina,datasets/Dataset/marina close left_eye.jpg,left_eye
+1,marina,datasets/Dataset/marina far left_eye.jpg,left_eye
+2,marina,datasets/Dataset/marina medium left_eye.jpg,left_eye
+3,sergey,datasets/Dataset/sergey close left_eye.jpg,left_eye
+4,sergey,datasets/Dataset/sergey far left_eye.jpg,left_eye
+5,sergey,datasets/Dataset/sergey medium left_eye.jpg,left_eye
+6,snejana,datasets/Dataset/snejana close left_eye.jpg,left_eye
+7,snejana,datasets/Dataset/snejana far left_eye.jpg,left_eye
+8,snejana,datasets/Dataset/snejana medium left_eye.jpg,left_eye

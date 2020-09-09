@@ -1,38 +1,53 @@
-import tensorflow.keras as keras
+from PIL import Image
+import pandas as pd
+import tensorflow as tf
+from tensorflow.keras import datasets, layers, models, utils
 import os, shutil
 import re
 import glob
 import cv2
 import numpy as np
+from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
-original_dataset_dir = './iris/dataset'
-base_dir = './iris/demo/'
-os.mkdir(base_dir)
+from preprocess import IRIS_EYE_DATASET_PATH, NAMES_FEMALE_DATASET_PATH, NAMES_MALE_DATASET_PATH, MY_EYE_PATH, IRIS_PROCESSED_DATASET_PATH, OUTPUT_CSV_PATH
 
-iris_segmented = base_dir + 'iris_dataset'
-os.mkdir(iris_segmented)
 
-filename = ''
+def train():
+    df = pd.read_csv(OUTPUT_CSV_PATH)
+    X_train = np.array([np.asarray(Image.open(im)) for im in df['iris_eye_picture_path']])
+    X_train = X_train / 255
+    X_train = list(X_train)
 
-irisList = os.listdir(original_dataset_dir)
+    le = preprocessing.LabelEncoder()
+    labels = list(set(df['names']))
+    le.fit(labels)
 
-for iris in irisList:
-    filename = original_dataset_dir + iris
+    y_train = le.transform(df['names'])
+    y_train_onehot = utils.to_categorical(y_train)
+    print(y_train_onehot)
 
-    grad_iris_img = cv2.imread(filename, 0)
-    iris_img = cv2.imread(filename)
+    model = models.Sequential()
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(None, None, 3)))
+    model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.summary()
 
-    crop_iris = grad_iris_img[:, :]
-    crop_orig_iris = iris_img[:, :]
-    crop_iris = cv2.medianBlur(crop_iris, 5)
+    model.compile(optimizer='adam',
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
 
-    if iris == 'masl2.tmp':
-        circles = cv2.HoughCircles(crop_iris, cv2.HOUGH_GRADIENT, 1.1, 155,
-                                   param1=50, param2=30, minRadius=35, maxRadius=70)
-    else:
-        circles = cv2.HoughCircles(crop_iris, cv2.HOUGH_GRADIENT, 1.0, 155,
-                                   param1=50, param2=30, minRadius=35, maxRadius=70)
+    history = model.fit(X_train, y_train_onehot, epochs=10)
 
-    if circles is None:
-        circles = np.uint16(np.around(circles))
+    plt.plot(history.history['accuracy'], label='accuracy')
+    plt.plot(history.history['val_accuracy'], label='val_accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.ylim([0.5, 1])
+    plt.legend(loc='lower right')
+
+
+if __name__ == '__main__':
+    train()

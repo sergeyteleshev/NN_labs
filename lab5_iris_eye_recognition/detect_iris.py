@@ -3,12 +3,16 @@ import numpy as np
 
 
 def detect_pupil(img):
-    pupil_center = None
+    pupil_center = [None, None]
     pupil_radius = None
 
     inv = cv2.bitwise_not(img)
-    thresh = cv2.cvtColor(inv, cv2.COLOR_BGR2GRAY)
-    kernel = np.ones((2, 2), np.uint8)
+    try:
+        thresh = cv2.cvtColor(inv, cv2.COLOR_BGR2GRAY)
+    except BaseException:
+        return pupil_center, pupil_radius
+
+    kernel = np.ones((4, 4), np.uint8)
     erosion = cv2.erode(thresh, kernel, iterations=1)
     ret, thresh1 = cv2.threshold(erosion, 220, 255, cv2.THRESH_BINARY)
     cnts, hierarchy = cv2.findContours(thresh1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -53,7 +57,7 @@ def detect_iris(img, pupil):
 
 
 if __name__ == '__main__':
-    img = cv2.imread('datasets/Eye dataset/forward_look/forward_look (1).jpg ', 1)
+    img = cv2.imread('test eye.jpg', 1)
     center, radius = detect_pupil(img)
     iris_img = detect_iris(img, (center[0], center[1], radius))
     cv2.imshow('my isris', iris_img)
