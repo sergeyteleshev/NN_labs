@@ -1,3 +1,4 @@
+import sys, math
 from PIL import Image
 import pandas as pd
 import tensorflow as tf
@@ -10,13 +11,15 @@ import numpy as np
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
-from preprocess import IRIS_EYE_DATASET_PATH, NAMES_FEMALE_DATASET_PATH, NAMES_MALE_DATASET_PATH, MY_EYE_PATH, IRIS_PROCESSED_DATASET_PATH, OUTPUT_CSV_PATH
+from preprocess import IRIS_EYE_DATASET_PATH, NAMES_FEMALE_DATASET_PATH, NAMES_MALE_DATASET_PATH, MY_EYE_PATH, \
+    IRIS_PROCESSED_DATASET_PATH, OUTPUT_CSV_PATH
 
 
 def train():
     df = pd.read_csv(OUTPUT_CSV_PATH)
-    X_train = np.array([np.asarray(Image.open(im)) for im in df['iris_eye_picture_path']])
-    X_train = X_train / 255
+
+    X_train = [np.asarray(Image.open(im)) for im in df['iris_eye_picture_path']]
+    # X_train = X_train / 255
     X_train = list(X_train)
 
     le = preprocessing.LabelEncoder()
