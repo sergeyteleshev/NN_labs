@@ -47,38 +47,23 @@ print(x_test.shape)
 
 
 def build_model(hp):
-    model = models.Sequential()  # add model layers
+    model = models.Sequential()
     model.add(layers.Conv2D(hp.Int("input_units", min_value=32, max_value=256, step=32), kernel_size=(5, 5),
                             activation='relu',
                             input_shape=x_train.shape[1:]))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
-    # add second convolutional layer with 20 filters
     for i in range(hp.Int("n_layers", 1, 4)):
         model.add(
             layers.Conv2D(hp.Int(f"conv_{i}_units", min_value=32, max_value=256, step=32), (5, 5), activation='relu'))
 
-    # add 2D pooling layer
-    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-
-    # flatten data
     model.add(layers.Flatten())
-
-    # add a dense all-to-all relu layer
     model.add(layers.Dense(1024, activation='relu'))
-
-    # apply dropout with rate 0.5
     model.add(layers.Dropout(0.5))
-
-    # soft-max layer
     model.add(layers.Dense(num_output, activation='softmax'))
-    # compile model using accuracy to measure model performance
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     return model
-
-    # model = build_model(x_train.shape[1:], num_output)
-
 
 tuner = RandomSearch(build_model,
                      objective="val_accuracy",

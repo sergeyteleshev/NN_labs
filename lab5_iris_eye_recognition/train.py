@@ -37,32 +37,22 @@ def train():
     print(X_train.shape)
     print(X_test.shape)
 
-    model = models.Sequential()  # add model layers
+    model = models.Sequential()
     model.add(layers.Conv2D(32, kernel_size=(5, 5),
                             activation='relu',
                             input_shape=X_train.shape[1:]))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    # add second convolutional layer with 20 filters
     model.add(layers.Conv2D(64, (5, 5), activation='relu'))
-
-    # add 2D pooling layer
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-
-    # flatten data
     model.add(layers.Flatten())
-
-    # add a dense all-to-all relu layer
     model.add(layers.Dense(1024, activation='relu'))
-
-    # apply dropout with rate 0.5
     model.add(layers.Dropout(0.5))
-
-    # soft-max layer
+    model.add(layers.Dense(512, activation='relu'))
+    model.add(layers.Dropout(0.5))
     model.add(layers.Dense(len(targets), activation='softmax'))
-    # compile model using accuracy to measure model performance
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    history = model.fit(X_train, y_train, epochs=1)
+    history = model.fit(X_train, y_train, epochs=20)
 
     model.save('model.h5')
 
