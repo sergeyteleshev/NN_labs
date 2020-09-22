@@ -17,7 +17,7 @@ LAB2_INPUT_IMAGE_PATH = './nevsnkiy1.jpg'
 LAB2_OUTPUT_IMAGE_PATH = './nevsnkiy1_output.jpg'
 
 # lab3 consts
-LAB3_INPUT_VIDEO_PATH = './traffic-mini.mp4'
+LAB3_INPUT_VIDEO_PATH = './traffic-mini_Trim.mp4'
 LAB3_OUTPUT_VIDEO_PATH = './traffic_mini_detected_1'
 LAB3_MODEL_PATH = './yolo.h5'
 
@@ -66,16 +66,48 @@ def lab2_object_detection():
     plt.show()
 
 
+def per_sec_function(sec, this_second_output_object_array, this_second_counting_array,
+                     this_second_counting, detected_copy):
+    frame_square_area = []
+    prob = []
+    annotations = []
+
+    for frame in this_second_output_object_array:
+        for eachObject in frame:
+            img_height = eachObject['box_points'][3] - eachObject['box_points'][1]
+            img_width = eachObject['box_points'][2] - eachObject['box_points'][0]
+            square_area = img_height * img_width
+
+            prob.append(eachObject['percentage_probability'])
+            frame_square_area.append(square_area)
+            annotations.append(eachObject["name"])
+
+        fig = plt.figure()
+        fig.ylabel('probability (%)')
+        fig.xlabel('image square area')
+        fig.title('Dependence of object size and recognition probability. Second #' + sec)
+        plt.scatter(frame_square_area, prob)
+
+        for i, txt in enumerate(annotations):
+            plt.annotate(txt, (frame_square_area[i], prob[i]))
+
+        fig.savefig(str(sec) + ".png")
+    print(sec, this_second_output_object_array)
+
+
 def lab3_video_detection_and_analysis():
     detector = VideoObjectDetection()
     detector.setModelTypeAsYOLOv3()
     detector.setModelPath(LAB3_MODEL_PATH)
     detector.loadModel()
+    video_path, counting, output_objects_array = detector.detectObjectsFromVideo(
+        input_file_path=LAB3_INPUT_VIDEO_PATH,
+        output_file_path=LAB3_OUTPUT_VIDEO_PATH,
+        frames_per_second=29,
+        log_progress=True,
+        return_detected_frame=True,
+        per_second_function=per_sec_function)
 
-    video_path = detector.detectObjectsFromVideo(input_file_path=LAB3_INPUT_VIDEO_PATH,
-                                                 output_file_path=LAB3_OUTPUT_VIDEO_PATH,
-                                                 frames_per_second=29,
-                                                 log_progress=True)
     print(video_path)
 
 
@@ -93,4 +125,4 @@ def lab4_custom_image_prediction():
 
 
 if __name__ == '__main__':
-    lab2_object_detection()
+    lab3_video_detection_and_analysis()
