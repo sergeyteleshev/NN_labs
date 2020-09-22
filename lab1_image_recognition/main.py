@@ -5,15 +5,16 @@ from imageai.Prediction import ImagePrediction
 from imageai.Detection import ObjectDetection
 from imageai.Detection import VideoObjectDetection
 from imageai.Prediction.Custom import CustomImagePrediction
+import matplotlib.pyplot as plt
 
 # lab1 consts
-LAB1_INPUT_IMAGE_PATH = "./test_image.jpg"
+LAB1_INPUT_IMAGE_PATH = "./nevsnkiy1.jpg"
 LAB1_MODEL_PATH = './resnet50_weights_tf_dim_ordering_tf_kernels.h5'
 
 # lab2 consts
 LAB2_MODEL_PATH = './resnet50_coco_best_v2.0.1.h5'
-LAB2_INPUT_IMAGE_PATH = './test_image.jpg'
-LAB2_OUTPUT_IMAGE_PATH = './lab2_output.jpg'
+LAB2_INPUT_IMAGE_PATH = './nevsnkiy1.jpg'
+LAB2_OUTPUT_IMAGE_PATH = './nevsnkiy1_output.jpg'
 
 # lab3 consts
 LAB3_INPUT_VIDEO_PATH = './traffic-mini.mp4'
@@ -33,15 +34,36 @@ def lab1_image_recognition():
 
 
 def lab2_object_detection():
+    frame_square_area = []
+    prob = []
+    annotations = []
+
     detector = ObjectDetection()
     detector.setModelTypeAsRetinaNet()
     detector.setModelPath(LAB2_MODEL_PATH)
     detector.loadModel()
+
     detections = detector.detectObjectsFromImage(input_image=LAB2_INPUT_IMAGE_PATH,
                                                  output_image_path=LAB2_OUTPUT_IMAGE_PATH)
 
     for eachObject in detections:
-        print(eachObject["name"], " : ", eachObject["percentage_probability"])
+        img_height = eachObject['box_points'][3] - eachObject['box_points'][1]
+        img_width = eachObject['box_points'][2] - eachObject['box_points'][0]
+        square_area = img_height * img_width
+
+        prob.append(eachObject['percentage_probability'])
+        frame_square_area.append(square_area)
+        annotations.append(eachObject["name"])
+
+        print(eachObject["name"], " : ", eachObject["percentage_probability"], ", square area : ", square_area)
+
+    plt.ylabel('probability (%)')
+    plt.xlabel('image square area')
+    plt.title('Dependence of object size and recognition probability')
+    plt.scatter(frame_square_area, prob)
+    for i, txt in enumerate(annotations):
+        plt.annotate(txt, (frame_square_area[i], prob[i]))
+    plt.show()
 
 
 def lab3_video_detection_and_analysis():
@@ -71,4 +93,4 @@ def lab4_custom_image_prediction():
 
 
 if __name__ == '__main__':
-    lab4_custom_image_prediction()
+    lab2_object_detection()
