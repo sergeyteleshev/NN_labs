@@ -17,8 +17,8 @@ LAB2_INPUT_IMAGE_PATH = './nevsnkiy1.jpg'
 LAB2_OUTPUT_IMAGE_PATH = './nevsnkiy1_output.jpg'
 
 # lab3 consts
-LAB3_INPUT_VIDEO_PATH = './traffic-mini_Trim.mp4'
-LAB3_OUTPUT_VIDEO_PATH = './traffic_mini_detected_1'
+LAB3_INPUT_VIDEO_PATH = './nevkiy_video_1sec.mp4'
+LAB3_OUTPUT_VIDEO_PATH = './nevkiy_video_1sec_detected.mp4'
 LAB3_MODEL_PATH = './yolo.h5'
 
 
@@ -68,11 +68,11 @@ def lab2_object_detection():
 
 def per_sec_function(sec, this_second_output_object_array, this_second_counting_array,
                      this_second_counting, detected_copy):
-    frame_square_area = []
-    prob = []
-    annotations = []
+    for i, frame in enumerate(this_second_output_object_array):
+        frame_square_area = []
+        prob = []
+        annotations = []
 
-    for frame in this_second_output_object_array:
         for eachObject in frame:
             img_height = eachObject['box_points'][3] - eachObject['box_points'][1]
             img_width = eachObject['box_points'][2] - eachObject['box_points'][0]
@@ -82,16 +82,19 @@ def per_sec_function(sec, this_second_output_object_array, this_second_counting_
             frame_square_area.append(square_area)
             annotations.append(eachObject["name"])
 
-        fig = plt.figure()
-        fig.ylabel('probability (%)')
-        fig.xlabel('image square area')
-        fig.title('Dependence of object size and recognition probability. Second #' + sec)
+        plt.figure()
+        plt.ylabel('probability (%)')
+        plt.xlabel('image square area')
+        plt.title("Dependence of object size and recognition probability. Second #{} Frame #{}".format(sec, i+1))
         plt.scatter(frame_square_area, prob)
 
-        for i, txt in enumerate(annotations):
-            plt.annotate(txt, (frame_square_area[i], prob[i]))
+        for j, txt in enumerate(annotations):
+            plt.annotate(txt, (frame_square_area[j], prob[j]))
 
-        fig.savefig(str(sec) + ".png")
+        plt.savefig("frame_{}_sec_{}.png".format(i+1, sec))
+        plt.clf()
+        plt.cla()
+
     print(sec, this_second_output_object_array)
 
 
